@@ -19,15 +19,15 @@ import java.util.Optional;
 @RequestMapping("/api/v1")
 public class UserController {
   private final UserRepository userRepository;
-  private final UserFactory userDtoFactory;
+  private final UserFactory userFactory;
 
   @GetMapping("/users")
   public List<UserDto> getAllUsers()
   {
     List<UserDto> userDtos = new ArrayList<>();
-    List<User> result = this.userRepository.findAll();
-    for(User user : result) {
-      userDtos.add(this.userDtoFactory.createFromEntity(user));
+    List<User> allUsers = this.userRepository.findAll();
+    for(User user : allUsers) {
+      userDtos.add(this.userFactory.createFromEntity(user));
     }
 
     return userDtos;
@@ -37,7 +37,7 @@ public class UserController {
   public UserDto getUser(@PathVariable Long id) throws NotFoundException {
     Optional<User> user = this.userRepository.findById(id);
     if (user.isPresent()) {
-      return this.userDtoFactory.createFromEntity(user.get());
+      return this.userFactory.createFromEntity(user.get());
     }
     throw new NotFoundException();
   }
@@ -47,7 +47,7 @@ public class UserController {
     String email = SecurityContextHolder.getContext().getAuthentication().getName();
     Optional<User> user = this.userRepository.findByEmail(email);
     if (user.isPresent()) {
-      return this.userDtoFactory.createFromEntity(user.get());
+      return this.userFactory.createFromEntity(user.get());
     }
     throw new NotFoundException();
   }
@@ -55,8 +55,8 @@ public class UserController {
   @PostMapping("/users")
   public UserDto createUser(@RequestBody UserDto user)
   {
-    User createdUser = this.userRepository.save(this.userDtoFactory.createFromDto(user));
-    return this.userDtoFactory.createFromEntity(createdUser);
+    User createdUser = this.userRepository.save(this.userFactory.createFromDto(user));
+    return this.userFactory.createFromEntity(createdUser);
   }
 
   @DeleteMapping("/users/{id}")
