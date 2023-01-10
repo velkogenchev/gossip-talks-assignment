@@ -1,8 +1,9 @@
 package bg.codeacademy.spring.gossiptalks.gossip;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import java.util.List;
 
 public interface GossipRepository extends JpaRepository<Gossip, Long> {
-  List<Gossip> getAllByUsername(String username);
+  Page<Gossip> getAllByUsername(String username, Pageable pageable);
 }
