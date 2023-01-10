@@ -1,16 +1,12 @@
 package bg.codeacademy.spring.gossiptalks.user;
 
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 
 @Component
 @RequiredArgsConstructor
 public class UserDtoFactory {
-  @Autowired
-  private ModelMapper modelMapper;
 
   public UserDto createFromEntity(User user)
   {

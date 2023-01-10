@@ -24,10 +24,11 @@ public class UserController {
   @GetMapping("/users")
   public Page<UserDto> getAllUsers(
       @RequestParam("page") @Positive @NotNull final int page,
+      @RequestParam("pageSize") @Positive @NotNull final int pageSize,
       @RequestParam("name") @Nullable final String name,
       @RequestParam("following") @Nullable final boolean following
   ) throws NotFoundException {
-    return this.userService.getAllUsers(page - 1, 10, name, following);
+    return this.userService.getAllUsers(page - 1, pageSize, name, following);
   }
 
   @GetMapping("/users/{id}")
