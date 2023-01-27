@@ -1,7 +1,6 @@
 package bg.codeacademy.spring.gossiptalks.gossip;
 
 import bg.codeacademy.spring.gossiptalks.user.User;
-import bg.codeacademy.spring.gossiptalks.user.UserDto;
 import bg.codeacademy.spring.gossiptalks.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
@@ -22,12 +21,15 @@ public class GossipService {
   private final GossipDtoFactory gossipDtoFactory;
   private final UserRepository userRepository;
 
-  public Page<GossipDto> getAllGossips(final int page, final int pageSize) {
+  public Page<GossipDto> getAllGossips(final int page, final int pageSize)
+      throws NotFoundException {
     Pageable pageable = PageRequest.of(page, pageSize);
     Page<Gossip> gossips = this.gossipRepository.findAll(pageable);
     List<GossipDto> gossipDtos = new ArrayList<>();
     for (Gossip gossip : gossips) {
-      gossipDtos.add(this.gossipDtoFactory.createFromEntity(gossip));
+      if (userRepository.isFollowing(getCurrentUser().getId(), gossip.getUser().getId())) {
+        gossipDtos.add(this.gossipDtoFactory.createFromEntity(gossip));
+      }
     }
 
     return new PageImpl<>(gossipDtos);
@@ -45,9 +47,8 @@ public class GossipService {
   }
 
   public GossipDto createGossip(String text) throws NotFoundException {
-    User user = getCurrentUser();
     Gossip gossip = new Gossip();
-    gossip.setUsername(user.getUsername());
+    gossip.setUser(getCurrentUser());
     gossip.setText(text);
     Gossip createdGossip = this.gossipRepository.save(gossip);
 

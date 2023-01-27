@@ -1,17 +1,19 @@
 package bg.codeacademy.spring.gossiptalks.user;
 
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,15 +21,14 @@ import java.util.stream.Collectors;
 public class UserService {
   private final UserRepository userRepository;
   private final UserDtoFactory userDtoFactory;
-  private final UserEntityFactory userEntityFactory;
+  private final PasswordEncoder passwordEncoder;
 
-  public Page<UserDto> getAllUsers(final int page, final int pageSize, final String name, final boolean followingFilter) throws NotFoundException {
+  public List<UserDto> getAllUsers(final String name, final boolean followingFilter) throws NotFoundException {
     Long loggedInUserId = getCurrentUser().getId();
-    Pageable pageable = PageRequest.of(page, pageSize);
-    Page<User> users = this.userRepository.findAll(pageable);
+    List<User> users = this.userRepository.findAll();
 
     if (name != null) {
-      users = this.userRepository.findByNameContainsIgnoreCaseOrUsernameContainsIgnoreCase(name, name, pageable);
+      users = this.userRepository.findByNameContainsIgnoreCaseOrUsernameContainsIgnoreCase(name, name);
     }
 
     List<UserDto> userDtos = new ArrayList<>();
@@ -40,7 +41,7 @@ public class UserService {
      userDtos = userDtos.stream().filter(u -> u.isFollowing()).collect(Collectors.toList());
     }
 
-    return new PageImpl<>(userDtos, pageable, userDtos.size());
+    return userDtos;
   }
 
   public UserDto getUserById(Long id) throws NotFoundException {
@@ -60,12 +61,40 @@ public class UserService {
     throw new NotFoundException();
   }
 
-  public UserDto createUser(UserDto userDto) {
-    User createdUser = this.userRepository.save(this.userEntityFactory.createFromDto(userDto));
-    return this.userDtoFactory.createFromEntity(createdUser);
+  public UserDto updateCurrentUser(UserMeDto userMeDto) {
+    Optional<User> loggedUser = this.getLoggedUser();
+    User user = loggedUser.get();
+    user.setPassword(this.passwordEncoder.encode(userMeDto.getPassword()));
+    this.userRepository.save(user);
+
+    return this.userDtoFactory.createFromEntity(user);
+  }
+
+  public UserDto follow(String username) throws NotFoundException {
+    Optional<User> followingUser = userRepository.getByUsername(username);
+    if (followingUser.isPresent()) {
+      User loggedUser = getLoggedUser().get();
+
+      if (loggedUser.getFollowing().contains(followingUser.get())) {
+        loggedUser.unfollow(followingUser.get());
+      } else {
+        loggedUser.follow(followingUser.get());
+      }
+
+      this.userRepository.save(loggedUser);
+
+      return this.userDtoFactory.createFromEntity(followingUser.get());
+    }
+
+    throw new NotFoundException();
   }
 
   public void deleteUser(Long id) {
     this.userRepository.deleteById(id);
+  }
+
+  private Optional<User> getLoggedUser() {
+    String email = SecurityContextHolder.getContext().getAuthentication().getName();
+    return this.userRepository.getByEmail(email);
   }
 }

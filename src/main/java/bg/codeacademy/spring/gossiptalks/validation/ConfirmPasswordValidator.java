@@ -10,10 +10,10 @@ public final class ConfirmPasswordValidator implements ConstraintValidator<Confi
 
   @Override
   public boolean isValid(final ConfirmPasswordInterface passwordInterface, final ConstraintValidatorContext context) {
-    if (passwordInterface.getPassword() == null ||passwordInterface.getConfirmPassword() == null ) {
+    if (passwordInterface.getPassword() == null || passwordInterface.getPasswordConfirmation() == null ) {
       return true;
     }
 
-    return passwordInterface.getPassword().equals(passwordInterface.getConfirmPassword());
+    return passwordInterface.getPassword().equals(passwordInterface.getPasswordConfirmation());
   }
 }

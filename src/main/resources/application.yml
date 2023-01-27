@@ -1,11 +1,12 @@
 # using yml file instead of properties is a little bit more structured
 spring:
   datasource:
-    url: "jdbc:h2:file:./gossip-db"
+    url: "jdbc:h2:mem:./gossip-db"
     password: ""
 
 spring.jpa.hibernate.ddl-auto: update
 spring.h2.console.enabled: true
+logging.level.web: debug
 
 # below is the configuration for the 'dev' profile
 # it inherits all from the default profile above, but can also

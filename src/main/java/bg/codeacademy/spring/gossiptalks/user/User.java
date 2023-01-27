@@ -14,7 +14,7 @@ import java.util.Set;
 public class User {
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_sequence")
-  @SequenceGenerator(name = "users_sequence", initialValue = 100) // first 100 are reserved
+  @SequenceGenerator(name = "users_sequence", initialValue = 50)
   private Long id;
   @Column(unique=true)
   private String email;
@@ -22,6 +22,7 @@ public class User {
   private String username;
   private String name;
   private String password;
+
   @ManyToMany
   @JoinTable(
       name = "following",
@@ -38,5 +39,13 @@ public class User {
     this.username = username;
     this.name = name;
     this.password = password;
+  }
+
+  public void follow(User user) {
+    following.add(user);
+  }
+
+  public void unfollow(User user) {
+    following.remove(user);
   }
 }
