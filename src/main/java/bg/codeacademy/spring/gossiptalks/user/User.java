@@ -1,7 +1,5 @@
 package bg.codeacademy.spring.gossiptalks.user;
 
-import bg.codeacademy.spring.gossiptalks.role.Role;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,8 +13,8 @@ import java.util.Set;
 @Table(name = "users")
 public class User {
   @Id
-  @Setter(AccessLevel.PROTECTED)
-  @GeneratedValue(strategy= GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_sequence")
+  @SequenceGenerator(name = "users_sequence", initialValue = 100) // first 100 are reserved
   private Long id;
   @Column(unique=true)
   private String email;
@@ -34,12 +32,6 @@ public class User {
 
   @ManyToMany(mappedBy = "following")
   private Set<User> followers;
-
-  @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-  @JoinTable(name = "user_roles",
-      joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
-      inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
-  private Set<Role> roles;
 
   public User(String email, String username, String name, String password) {
     this.email = email;
